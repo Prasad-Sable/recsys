@@ -1,15 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDashboard, getBadges, getQuests } from '../api';
+import { getDashboardAll } from '../api';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#f97316', '#ef4444'];
 
 export default function Dashboard() {
-  const [data, setData] = useState(null);
-  const [badges, setBadges] = useState([]);
-  const [quests, setQuests] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(() => {
+    const cached = localStorage.getItem('dashboard_cache');
+    return cached ? JSON.parse(cached).stats : null;
+  });
+  const [badges, setBadges] = useState(() => {
+    const cached = localStorage.getItem('dashboard_cache');
+    return cached ? JSON.parse(cached).badges : [];
+  });
+  const [quests, setQuests] = useState(() => {
+    const cached = localStorage.getItem('dashboard_cache');
+    return cached ? JSON.parse(cached).quests : [];
+  });
+  const [loading, setLoading] = useState(!data);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,14 +27,12 @@ export default function Dashboard() {
 
   const fetchDashboard = async () => {
     try {
-      const [dashRes, badgesRes, questsRes] = await Promise.all([
-        getDashboard(),
-        getBadges(),
-        getQuests()
-      ]);
-      setData(dashRes.data);
-      setBadges(badgesRes.data);
-      setQuests(questsRes.data);
+      const res = await getDashboardAll();
+      const allData = res.data;
+      setData(allData.stats);
+      setBadges(allData.badges);
+      setQuests(allData.quests);
+      localStorage.setItem('dashboard_cache', JSON.stringify(allData));
     } catch (err) {
       console.error(err);
     } finally {

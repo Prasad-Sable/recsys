@@ -30,6 +30,7 @@ export const submitQuiz = (data) => API.post('/submit-quiz', data);
 
 // Dashboard
 export const getDashboard = () => API.get('/dashboard');
+export const getDashboardAll = () => API.get('/dashboard/all');
 
 // Gamification
 export const getBadges = () => API.get('/gamification/badges');
