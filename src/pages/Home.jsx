@@ -25,6 +25,7 @@ export default function Home() {
   const [recommendations, setRecommendations] = useState([]);
   const [adaptiveInfo, setAdaptiveInfo] = useState(null);
   const [continueLesson, setContinueLesson] = useState(null);
+  const [customTopic, setCustomTopic] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -41,13 +42,14 @@ export default function Home() {
     }
   };
 
-  const fetchRecommendations = async (time) => {
+  const fetchRecommendations = async (time, explicitTopic = null) => {
     setLoading(true);
     setRecommendations([]); // clear old ones to show loading
     try {
       const res = await getRecommendations({ 
         available_time: time,
-        topics: selectedTopics.length > 0 ? selectedTopics : undefined
+        topics: selectedTopics.length > 0 ? selectedTopics : undefined,
+        custom_topic: explicitTopic || customTopic || undefined
       });
       setRecommendations(res.data.recommendations);
       setAdaptiveInfo(res.data.adaptive_info);
@@ -118,6 +120,31 @@ export default function Home() {
                   {TOPIC_ICONS[topic]} {topic}
                 </button>
               ))}
+            </div>
+
+            <div className="mt-4 w-full border-t border-purple-200 pt-4">
+              <p className="text-xs font-bold text-slate-400 mb-2">Or learn something specific:</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customTopic}
+                  onChange={(e) => setCustomTopic(e.target.value)}
+                  placeholder="Enter any topic..."
+                  className="flex-1 px-3 py-2 rounded-xl bg-white border-2 border-slate-200 text-slate-800 font-bold placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-all text-sm"
+                />
+                {customTopic && (
+                  <button
+                    onClick={() => {
+                        if (selectedTime) fetchRecommendations(selectedTime);
+                        else setSelectedTime(null); // Just visual feedback
+                    }}
+                    className={`btn-fun text-xs px-3 py-1 ${selectedTime ? 'btn-primary' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
+                    disabled={!selectedTime}
+                  >
+                    Go
+                  </button>
+                )}
+              </div>
             </div>
             {selectedTopics.length === 0 && (
               <p className="text-xs text-orange-500 font-bold mt-2">Select at least one topic for best results!</p>
